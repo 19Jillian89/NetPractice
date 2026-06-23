@@ -7,6 +7,17 @@
 ![Status](https://img.shields.io/badge/status-complete-success)
 ![42](https://img.shields.io/badge/42-Common%20Core-black)
 
+## Table of contents
+ 
+- [Description](#description)
+- [Instructions](#instructions)
+  - [Running the training interface](#running-the-training-interface)
+  - [Solving a level](#solving-a-level)
+  - [Exporting configurations](#exporting-configurations)
+  - [Submission requirements](#submission-requirements)
+- [Levels](#levels)
+- [Resources](#resources)
+
 ## Description
 
 NetPractice is an introductory networking project from the 42 curriculum. The goal is to understand and apply the fundamentals of TCP/IP networking by diagnosing and fixing broken network topologies through a web-based training interface.
@@ -64,21 +75,25 @@ Every IPv4 address is split conceptually into two parts:
 The subnet mask is what tells a device exactly where the line between those two portions falls.
 
 **Subnet masks and CIDR notation**
-
+ 
 A subnet mask is a second number, in the same four-number format as an IP address, that "covers" the network portion of the address with `255`s and leaves the host portion as `0`s. For example, `255.255.255.0` means: the first three numbers identify the network, and the last number identifies the host within it — giving room for 254 usable host addresses (256 total, minus the network address and the broadcast address).
-
+ 
 **CIDR notation** (e.g. `/24`, `/27`, `/30`) is just a shorter way of writing the same mask, by counting how many bits (out of 32) are dedicated to the network portion:
-
-| CIDR | Subnet mask | Usable hosts |
-|------|-------------|--------------|
-| /24 | 255.255.255.0 | 254 |
-| /25 | 255.255.255.128 | 126 |
-| /26 | 255.255.255.192 | 62 |
-| /27 | 255.255.255.224 | 30 |
-| /28 | 255.255.255.240 | 14 |
-| /29 | 255.255.255.248 | 6 |
-| /30 | 255.255.255.252 | 2 |
-
+ 
+| CIDR | Subnet mask | Wildcard mask | Usable hosts |
+|------|-------------|---------------|--------------|
+| /24 | 255.255.255.0 | 0.0.0.255 | 254 |
+| /25 | 255.255.255.128 | 0.0.0.127 | 126 |
+| /26 | 255.255.255.192 | 0.0.0.63 | 62 |
+| /27 | 255.255.255.224 | 0.0.0.31 | 30 |
+| /28 | 255.255.255.240 | 0.0.0.15 | 14 |
+| /29 | 255.255.255.248 | 0.0.0.7 | 6 |
+| /30 | 255.255.255.252 | 0.0.0.3 | 2 |
+ 
+The **wildcard mask** is simply the mathematical inverse of the subnet mask (each byte is `255 - mask_byte`). It's mostly used in router/ACL configuration syntax rather than in everyday subnetting, but it's a useful way to double-check a mask: it directly shows the size of the host range without doing the bit math.
+ 
+A useful shortcut: since a mask byte is just a row of 1s followed by a row of 0s, only nine values are ever valid for a single byte of a mask — `0, 128, 192, 224, 240, 248, 252, 254, 255`. Once a `0` appears in a mask (reading left to right), every following byte must also be `0` — a mask like `255.255.240.128` is invalid, since a `0` already appeared in the third byte.
+ 
 The smaller the host portion, the fewer addresses are available — but the tighter and more efficient the subnet. Inside any subnet, two addresses are always reserved and can't be assigned to a device: the **network address** (all host bits at 0, identifies the subnet itself) and the **broadcast address** (all host bits at 1, used to reach every device in that subnet at once).
 
 **Subnetting**
@@ -94,6 +109,21 @@ The practical method I used while solving each level:
 **Default gateways**
 
 A default gateway is the address a device sends traffic to whenever the destination isn't inside its own subnet. It's effectively the device saying "I don't know how to reach this address directly, so I'll hand it to my router and let it figure out the rest." Every host pointed its default route (`0.0.0.0/0` or `default`) at the router interface sitting on its own local subnet — never at a router interface on a different subnet, since that wouldn't be directly reachable.
+
+**Public vs. private IP addresses**
+ 
+Not every IP address is meant to be used the same way. Some ranges are explicitly reserved for special purposes and shouldn't normally appear elsewhere:
+ 
+| Range | Purpose |
+|-------|---------|
+| 10.0.0.0 – 10.255.255.255 | Private addresses (Class A) |
+| 172.16.0.0 – 172.31.255.255 | Private addresses (Class B) |
+| 192.168.0.0 – 192.168.255.255 | Private addresses (Class C) |
+| 127.0.0.0 – 127.255.255.255 | Loopback / internal testing (a device talking to itself) |
+| 224.0.0.0 – 239.255.255.255 | Multicast (one-to-many delivery) |
+| 240.0.0.0 – 255.255.255.255 | Reserved for experimental/research use |
+ 
+In a home or office setup, the ISP assigns one **public IP address** to the router — this is the address visible to the rest of the Internet. Behind that router, a private subnet is created (using one of the private ranges above), and the router hands out a **private IP address** to every device connected to it. This is also why NetPractice topologies clearly separate an "Internet" block (acting like the ISP side, with public-looking addresses) from the host/router LANs behind it.
 
 **Routers and switches**
 
